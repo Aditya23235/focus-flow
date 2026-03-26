@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:8.9.1'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -21,6 +21,36 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+
+    // Force Java 17 for all Java compilation tasks across all modules
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
+    }
+
+    // Force Java 17 for Android-specific configurations across all subprojects
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+                
+                // Force Kotlin JVM target to 17 if Kotlin is used
+                if (project.plugins.hasPlugin('kotlin-android')) {
+                    kotlinOptions {
+                        jvmTarget = '17'
+                    }
+                }
+
+                // If a toolchain is defined, force it to 17
+                if (project.android.hasProperty('java') && project.android.java.hasProperty('toolchain')) {
+                    project.android.java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+                }
+            }
+        }
     }
 }
 
